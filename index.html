@@ -33,6 +33,7 @@ button.d{border-color:var(--bad);color:var(--bad)}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .ex{display:grid;grid-template-columns:1fr 70px auto;gap:6px;border-top:1px solid var(--line);padding:8px 0}
 .ex textarea{grid-column:1/3}
+.ex2{grid-column:1/-1;display:grid;grid-template-columns:1fr 100px;gap:6px}
 .pl{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid var(--line)}
 .pl select{width:84px;margin:0}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
@@ -71,12 +72,19 @@ const r1=n=>Math.round(n*10)/10;
 let S=load(),view='seduta',msg='',F=newForm();
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.sessions)return j}catch(e){}return{cat:'Juniores',players:[],sessions:[],ref:{}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function newForm(){return{id:null,date:fmt(new Date()),giorno:'MD-4',dur:90,note:'',ex:[{t:2,m:'',d:''}],rpe:{},avg:''}}
+function newForm(){return{id:null,date:fmt(new Date()),giorno:'MD-4',dur:90,note:'',exp:'',ex:[{t:2,m:'',d:'',o:'',v:''}],rpe:{},avg:''}}
 function ref(){const c=S.cat;if(S.ref[c])return S.ref[c];const[o,w]=CATS[c];const r={week:w.slice(),day:{}};for(const k in BASE)r.day[k]=[Math.max(1,BASE[k][0]+o),Math.max(2,BASE[k][1]+o)];return r}
 function sRPE(s){const v=Object.values(s.rpe||{}).filter(x=>x>0);return v.length?avg(v):(s.avg>0?+s.avg:null)}
 function status(v,lo,hi){return v<lo?'warn':v>hi?'bad':'ok'}
 function wk(d){const t=new Date(d+'T00:00');t.setDate(t.getDate()-(t.getDay()+6)%7);return fmt(t)}
 const sc=(fn)=>{const y=scrollY;fn();render();scrollTo(0,y)};
+
+function objList(){const s=new Set();S.sessions.forEach(x=>x.ex.forEach(e=>{if(e.o)s.add(e.o.trim())}));return[...s]}
+function expTxt(s,v){return s.exp>0?` Previsto <b>${s.exp}</b>, reale <b>${r1(v)}</b>: scarto <b>${v-s.exp>0?'+':''}${r1(v-s.exp)}</b>.`:''}
+function expSummary(ss){const a=ss.filter(s=>s.exp>0).slice(-12);if(!a.length)return'<p class="mut">Scrivi un RPE atteso nelle sedute per vedere qui il confronto con quello reale.</p>';const d=a.map(s=>sRPE(s)-s.exp),m=avg(d),ok=d.filter(x=>Math.abs(x)<=1).length;return`<p>Su ${a.length} sedute con RPE atteso: scarto medio <b>${m>0?'+':''}${r1(m)}</b> (${m>0.5?'i ragazzi hanno sentito più fatica del previsto':m<-0.5?'i ragazzi hanno sentito meno fatica del previsto':'previsto e reale sono in linea'}); in ${ok} entro 1 punto.</p>`}
+function vObj(){const m={};[...S.sessions].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>s.ex.forEach(e=>{if(!e.o||e.v===''||e.v==null||isNaN(+e.v))return;const k=e.o.trim().toLowerCase();(m[k]=m[k]||{n:e.o.trim(),p:[]}).p.push({d:s.date,v:+e.v})}));
+ const ks=Object.keys(m);if(!ks.length)return'';
+ return`<div class="card"><h2>Obiettivi osservabili</h2><div class="mut">Conteggi registrati negli esercizi, dal più vecchio al più recente. Con almeno due rilevazioni vedi la tendenza. Salire non è sempre un bene: dipende da cosa conti.</div><table><tr><th>Obiettivo</th><th>Valori</th><th>Tendenza</th></tr>${ks.map(k=>{const p=m[k].p,l=p[p.length-1],q=p[p.length-2];const t=q?(l.v>q.v?'in aumento':l.v<q.v?'in calo':'stabile')+' ('+(l.v>=q.v?'+':'')+(l.v-q.v)+')':'serve una 2ª rilevazione';return`<tr><td>${esc(m[k].n)}</td><td>${p.slice(-6).map(x=>x.v).join(' · ')}</td><td>${t}</td></tr>`}).join('')}</table></div>`}
 
 /* ---------- Seduta ---------- */
 function vSeduta(){
@@ -84,15 +92,17 @@ function vSeduta(){
  return `${msg?`<div class="card ok">${msg}</div>`:''}
  <div class="card"><h2>${F.id?'Modifica seduta':'Nuova seduta'}</h2>
  <label>Data<input type="date" value="${F.date}" onchange="F.date=this.value"></label>
- <label>Giorno<select onchange="F.giorno=this.value">${Object.keys(r.day).map(k=>`<option ${k==F.giorno?'selected':''}>${k}</option>`).join('')}</select></label>
+ <label>Giorno<select onchange="sc(()=>{F.giorno=this.value})">${Object.keys(r.day).map(k=>`<option ${k==F.giorno?'selected':''}>${k}</option>`).join('')}</select></label>
  <label>Durata (minuti)<input type="number" inputmode="numeric" value="${F.dur}" oninput="F.dur=+this.value"></label>
+ <label>RPE atteso (facoltativo)<input type="number" inputmode="decimal" min="1" max="10" step="0.5" placeholder="fascia ${r.day[F.giorno]?r.day[F.giorno][0]+'–'+r.day[F.giorno][1]:''}" value="${F.exp}" oninput="F.exp=this.value"></label>
  <label>Note<input value="${esc(F.note)}" oninput="F.note=this.value" placeholder="es. campo pesante, assenti…"></label></div>
- <div class="card"><h3>Esercizi</h3>
+ <div class="card"><h3>Esercizi</h3><datalist id="objs">${objList().map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
  ${F.ex.map((e,i)=>`<div class="ex"><select onchange="F.ex[${i}].t=+this.value">${TIPI.map((t,j)=>`<option value="${j}" ${j==e.t?'selected':''}>${t[0]}</option>`).join('')}</select>
  <input type="number" inputmode="numeric" placeholder="min" value="${e.m}" oninput="F.ex[${i}].m=+this.value">
  <button class="x" aria-label="Elimina esercizio" onclick="sc(()=>F.ex.splice(${i},1))">×</button>
- <textarea placeholder="Descrizione breve (spazi, serie, recuperi…)" oninput="F.ex[${i}].d=this.value">${esc(e.d)}</textarea></div>`).join('')}
- <button onclick="sc(()=>F.ex.push({t:2,m:'',d:''}))">+ Aggiungi esercizio</button></div>
+ <textarea placeholder="Descrizione breve (spazi, serie, recuperi…)" oninput="F.ex[${i}].d=this.value">${esc(e.d)}</textarea>
+ <div class="ex2"><input list="objs" placeholder="Obiettivo osservabile (es. passaggi in verticale)" value="${esc(e.o)}" oninput="F.ex[${i}].o=this.value"><input type="number" inputmode="numeric" placeholder="Conteggio" value="${e.v==null?'':e.v}" oninput="F.ex[${i}].v=this.value"></div></div>`).join('')}
+ <button onclick="sc(()=>F.ex.push({t:2,m:'',d:'',o:'',v:''}))">+ Aggiungi esercizio</button></div>
  <div class="card"><h3>Fatica percepita (1–10)</h3>
  ${S.players.length?`<label>Imposta tutti a<select onchange="sc(()=>{S.players.forEach(p=>F.rpe[p.id]=+this.value)})"><option>—</option>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option>${n}</option>`).join('')}</select></label>
  ${S.players.map(p=>`<div class="pl"><span>${esc(p.name)}</span><select onchange="F.rpe['${p.id}']=+this.value">${['assente',1,2,3,4,5,6,7,8,9,10].map((n,k)=>`<option value="${k}" ${(F.rpe[p.id]||0)==k?'selected':''}>${n}</option>`).join('')}</select></div>`).join('')}`
@@ -103,12 +113,12 @@ function vSeduta(){
 }
 function saveSess(){
  if(!F.date||!(F.dur>0)){alert('Inserisci data e durata della seduta.');return}
- const s={id:F.id||('s'+Date.now()),date:F.date,giorno:F.giorno,dur:F.dur,note:F.note,ex:F.ex.filter(e=>e.m||e.d),rpe:{...F.rpe},avg:F.avg};
+ const s={id:F.id||('s'+Date.now()+Math.random().toString(36).slice(2,6)),date:F.date,giorno:F.giorno,dur:F.dur,note:F.note,exp:F.exp,ex:F.ex.filter(e=>e.m||e.d||e.o),rpe:{...F.rpe},avg:F.avg};
  const i=S.sessions.findIndex(x=>x.id==s.id);if(i>=0)S.sessions[i]=s;else S.sessions.push(s);
  save();
  const v=sRPE(s),r=ref().day[s.giorno];
  if(v==null)msg='Seduta salvata. Mancano i voti RPE: aggiungili dallo Storico.';
- else{const st=status(v,r[0],r[1]);msg=`Seduta salvata. RPE medio <b>${r1(v)}</b>, carico <b>${Math.round(v*s.dur)} UA</b>. Per ${s.giorno} la fascia è ${r[0]}–${r[1]}: <span class="s-${st}">${st=='ok'?'dentro la fascia':st=='bad'?'sopra la fascia':'sotto la fascia'}</span>.`}
+ else{const st=status(v,r[0],r[1]);msg=`Seduta salvata. RPE medio <b>${r1(v)}</b>, carico <b>${Math.round(v*s.dur)} UA</b>. Per ${s.giorno} la fascia è ${r[0]}–${r[1]}: <span class="s-${st}">${st=='ok'?'dentro la fascia':st=='bad'?'sopra la fascia':'sotto la fascia'}</span>.${expTxt(s,v)}`}
  F=newForm();view='seduta';render();scrollTo(0,0);
 }
 
@@ -117,12 +127,12 @@ function vStorico(){
  const ss=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
  if(!ss.length)return`<div class="card">Nessuna seduta salvata. Inserisci la prima dalla scheda Seduta.</div>`;
  return ss.map(s=>{const v=sRPE(s);return`<div class="card"><div class="row"><h3>${dm(s.date)} · ${s.giorno}</h3><span class="mut">${s.dur} min</span></div>
- <div>${v==null?'<span class="mut">RPE non inserito</span>':`RPE <b>${r1(v)}</b> · <b>${Math.round(v*s.dur)}</b> UA`}</div>
+ <div>${v==null?'<span class="mut">RPE non inserito</span>':`RPE <b>${r1(v)}</b> · <b>${Math.round(v*s.dur)}</b> UA${s.exp>0?` · previsto ${s.exp}`:''}`}</div>
  ${s.note?`<div class="mut">${esc(s.note)}</div>`:''}
- ${s.ex.map(e=>`<div style="margin-top:6px"><span class="tag" style="background:${TIPI[e.t][1]}">${TIPI[e.t][0].split(' – ')[0]}</span> <span class="mut">${e.m||'?'} min</span><div>${esc(e.d)}</div></div>`).join('')}
+ ${s.ex.map(e=>`<div style="margin-top:6px"><span class="tag" style="background:${TIPI[e.t][1]}">${TIPI[e.t][0].split(' – ')[0]}</span> <span class="mut">${e.m||'?'} min</span><div>${esc(e.d)}</div>${e.o?`<div class="mut">Obiettivo: ${esc(e.o)}${e.v!==''&&e.v!=null?` → ${e.v}`:''}</div>`:''}</div>`).join('')}
  <div class="row" style="margin-top:10px"><button onclick="edit('${s.id}')">Modifica</button><button class="d" onclick="del('${s.id}')">Elimina</button></div></div>`}).join('');
 }
-function edit(id){const s=S.sessions.find(x=>x.id==id);F=JSON.parse(JSON.stringify(s));F.ex=F.ex.length?F.ex:[{t:2,m:'',d:''}];view='seduta';msg='';render();scrollTo(0,0)}
+function edit(id){const s=S.sessions.find(x=>x.id==id);F=JSON.parse(JSON.stringify(s));F.ex=F.ex.length?F.ex:[{t:2,m:'',d:'',o:'',v:''}];view='seduta';msg='';render();scrollTo(0,0)}
 function del(id){if(confirm('Eliminare questa seduta?')){S.sessions=S.sessions.filter(x=>x.id!=id);save();render()}}
 
 /* ---------- Grafici ---------- */
@@ -131,7 +141,7 @@ function bars(items,max,gridLabel){
  let g=[0,.5,1].map(f=>`<line x1="${L}" x2="${R}" y1="${y(max*f)}" y2="${y(max*f)}" stroke="var(--line)"/><text x="${L-3}" y="${y(max*f)+3}" text-anchor="end">${Math.round(max*f)}</text>`).join('');
  items.forEach((it,i)=>{const x=L+cw*i,st=status(it.v,it.lo,it.hi);
   g+=`<rect x="${x+cw*.08}" y="${y(it.hi)}" width="${cw*.84}" height="${y(it.lo)-y(it.hi)}" style="fill:var(--band)"/>
-  <rect x="${x+(cw-bw)/2}" y="${y(it.v)}" width="${bw}" height="${B-y(it.v)}" rx="2" style="fill:var(--${st})"/>
+  <rect x="${x+(cw-bw)/2}" y="${y(it.v)}" width="${bw}" height="${B-y(it.v)}" rx="2" style="fill:var(--${st})"/>${it.e!=null?`<line x1="${x+(cw-bw)/2-3}" x2="${x+(cw+bw)/2+3}" y1="${y(it.e)}" y2="${y(it.e)}" style="stroke:var(--tx);stroke-width:2.5"/>`:''}
   <text x="${x+cw/2}" y="${y(it.v)-3}" text-anchor="middle" style="fill:var(--tx);font-weight:700">${it.t}</text>
   <text x="${x+cw/2}" y="${B+11}" text-anchor="middle">${it.a}</text><text x="${x+cw/2}" y="${B+20}" text-anchor="middle">${it.b}</text>`});
  return`<svg viewBox="0 0 ${W} 176" role="img" aria-label="${gridLabel}">${g}</svg>`;
@@ -139,7 +149,7 @@ function bars(items,max,gridLabel){
 function vGrafici(){
  const r=ref(),ss=[...S.sessions].filter(s=>sRPE(s)!=null).sort((a,b)=>a.date.localeCompare(b.date));
  if(!ss.length)return`<div class="card">I grafici compaiono dopo la prima seduta con i voti RPE.</div>`;
- const last=ss.slice(-12).map(s=>{const v=sRPE(s),q=r.day[s.giorno];return{v,t:r1(v),lo:q[0],hi:q[1],a:SHORT[s.giorno]||s.giorno,b:dm(s.date)}});
+ const last=ss.slice(-12).map(s=>{const v=sRPE(s),q=r.day[s.giorno];return{v,t:r1(v),lo:q[0],hi:q[1],a:SHORT[s.giorno]||s.giorno,b:dm(s.date),e:s.exp>0?+s.exp:null}});
  const wm={};ss.forEach(s=>{const k=wk(s.date);wm[k]=(wm[k]||0)+sRPE(s)*s.dur});
  const wks=Object.keys(wm).sort().slice(-8).map(k=>({v:wm[k],t:Math.round(wm[k]),lo:r.week[0],hi:r.week[1],a:dm(k),b:''}));
  const wmax=Math.ceil(Math.max(r.week[1]*1.15,...wks.map(w=>w.v))/100)*100;
@@ -150,10 +160,11 @@ function vGrafici(){
  // tabella giocatori
  const rows=S.players.map(p=>{let ua=0,rs=[];ss.filter(s=>s.date>=l28).forEach(s=>{const v=s.rpe&&s.rpe[p.id];if(v>0){ua+=v*s.dur;rs.push(v)}});return{n:p.name,ua,rpe:avg(rs),k:rs.length}}).filter(x=>x.k);
  const mean=avg(rows.map(x=>x.ua));
- return`<div class="card"><h2>RPE per seduta</h2><div class="mut">Ultime ${last.length} sedute. Fascia tenue = valore atteso per quel giorno (${S.cat}).</div>${bars(last,10,'RPE medio per seduta con fascia di riferimento')}</div>
+ return`<div class="card"><h2>RPE per seduta</h2><div class="mut">Ultime ${last.length} sedute. Fascia tenue = valore di riferimento per quel giorno (${S.cat}); trattino scuro = RPE atteso che hai scritto tu.</div>${bars(last,10,'RPE medio per seduta con fascia di riferimento')}${expSummary(ss)}</div>
  <div class="card"><h2>Carico settimanale</h2><div class="mut">Unità di carico (RPE × minuti) per giocatore, fascia ${r.week[0]}–${r.week[1]} UA. La settimana in corso può risultare bassa perché incompleta.</div>${bars(wks,wmax,'Carico settimanale con fascia di riferimento')}</div>
  <div class="card"><h2>Che cosa alleni</h2><div class="mut">Minuti per tipologia negli ultimi 28 giorni${tot?` (totale ${tot} min)`:''}.</div>
  ${dk.length?dk.map(k=>`<div style="margin-top:6px">${TIPI[k][0].split(' – ')[0]} <span class="mut">${dist[k]} min · ${Math.round(100*dist[k]/tot)}%</span><div class="bar" style="width:${Math.max(3,100*dist[k]/tot)}%;background:${TIPI[k][1]}"></div></div>`).join(''):'<p class="mut">Nessun esercizio con durata negli ultimi 28 giorni.</p>'}</div>
+ ${vObj()}
  ${rows.length?`<div class="card"><h2>Giocatori</h2><div class="mut">Ultimi 28 giorni. Evidenziati i carichi oltre ±25% della media di squadra (${Math.round(mean)} UA).</div><table><tr><th>Nome</th><th>UA</th><th>RPE medio</th></tr>
  ${rows.sort((a,b)=>b.ua-a.ua).map(x=>{const c=x.ua>mean*1.25?'s-bad':x.ua<mean*.75?'s-warn':'';return`<tr><td>${esc(x.n)}</td><td class="${c}">${Math.round(x.ua)}</td><td>${r1(x.rpe)}</td></tr>`}).join('')}</table></div>`:''}`;
 }
