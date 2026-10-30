@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Formazioni">
+<meta name="theme-color" content="#2a7334">
+<title>Formazioni</title>
+<style>
+:root{--bg:#e6f6ec;--fg:#10231a;--card:#fff;--mut:#4f6a5a;--bd:#bfe3cb;--ac:#0b8f45;--acf:#fff;--in:#f1faf4}
+@media (prefers-color-scheme:dark){:root{--bg:#0a1510;--fg:#eaf7ef;--card:#14231b;--mut:#9fc2ad;--bd:#26452f;--ac:#34d399;--acf:#06140d;--in:#17382a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Avenir Next","Segoe UI",Roboto,Arial,sans-serif;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 84px);max-width:560px;margin:0 auto}
+h1{font-size:20px;margin:4px 0 2px}.sub{color:var(--mut);font-size:13px;margin:0 0 10px}
+section{display:none}section.on{display:block}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--mut);font-size:13px;font-weight:600;padding:10px 4px;border-radius:10px}
+nav button.on{color:var(--acf);background:var(--ac)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+.chip{flex:none;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:20px;padding:8px 13px;font-size:14px;font-weight:600}
+.chip.on{background:var(--ac);color:var(--acf);border-color:var(--ac)}
+.pitch{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;margin:8px 0;background:repeating-linear-gradient(0deg,#2f7d3a 0 12.5%,#2a7334 12.5% 25%);border:2px solid #ffffff55}
+.ln{position:absolute;border:2px solid #ffffff55}
+.p{position:absolute;width:72px;transform:translate(-50%,-50%);text-align:center;color:#fff;transition:left .8s ease,top .8s ease,opacity .5s}
+.c{width:38px;height:38px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-weight:700;font-size:13px;border:2px solid #fff;transition:background .6s}
+.chg .c{box-shadow:0 0 0 4px #ffb020;animation:pu 1s ease 2}
+@keyframes pu{50%{box-shadow:0 0 0 8px #ffb02055}}
+@media (prefers-reduced-motion:reduce){.p,.c{transition:none}.chg .c{animation:none}}
+.n{font-size:10.5px;line-height:1.15;font-weight:600;margin-top:2px;text-shadow:0 1px 2px #000}.n i{font-style:normal;opacity:.8;font-weight:400}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:10px 0}
+.card h2{font-size:14px;margin:0 0 8px;color:var(--mut)}
+.sum{font-size:14px;line-height:1.5}
+.row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}
+.row b{width:62px;flex:none}.bar{flex:1;height:22px;background:var(--bd);border-radius:6px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--ac);opacity:.55;border-radius:6px;transition:width .6s}
+.row.on .bar span{opacity:1}.row em{width:78px;flex:none;font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.ro{display:flex;flex-wrap:wrap;gap:6px}
+.pl{border:1px solid var(--bd);border-radius:8px;padding:6px 9px;font-size:13px;background:var(--card);color:var(--fg)}
+.pl.s{border-color:#2f9e44;background:#2f9e4422}.pl.o{opacity:.45;text-decoration:line-through}
+.note{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.4}
+details.card{padding:0}details>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;font-weight:600;font-size:15px}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"›";color:var(--mut);font-size:20px;transition:transform .2s}
+details[open]>summary::after{transform:rotate(90deg)}
+.bd{padding:0 12px 12px}
+.tg{margin-left:auto;font-size:12px;font-weight:600;padding:4px 9px;border-radius:12px;background:#2f9e4422;color:#2f9e44;border:1px solid #2f9e44}
+.tg.o{background:#c9252522;color:#d64545;border-color:#d64545}
+.tg+*{margin-left:0}
+label{display:block;font-size:12px;color:var(--mut)}
+input,select,textarea{width:100%;margin-top:3px;padding:9px;font-size:16px;border:1px solid var(--bd);border-radius:8px;background:var(--in);color:var(--fg);font-family:inherit}
+.f2{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:8px}
+.ck{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:14px;color:var(--fg)}.ck input{width:20px;height:20px;margin:0}
+.ag{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bt{border:1px solid var(--ac);background:var(--ac);color:var(--acf);border-radius:10px;padding:11px 14px;font-size:15px;font-weight:600;width:100%;margin-top:8px}
+.bt.g{background:none;color:var(--ac)}.bt.d{background:none;color:#d64545;border-color:#d64545}
+textarea{min-height:150px;font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.ok{color:#2f9e44}.ko{color:#d64545}
+body.emb h1,body.emb .sub,body.emb .nm,body.emb #addp,body.emb .rm{display:none}
+body.emb .f2{grid-template-columns:1fr}
+</style></head><body>
+<h1>Formazioni</h1>
+<p class="sub">Trova l’undici migliore per ogni modulo</p>
+
+<section id="campo" class="on">
+<div class="chips" id="chips"></div>
+<div class="pitch" id="pitch">
+<div class="ln" style="top:50%;left:0;right:0;height:0"></div>
+<div class="ln" style="top:50%;left:50%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%"></div>
+<div class="ln" style="bottom:0;left:25%;width:50%;height:15%"></div>
+<div class="ln" style="top:0;left:25%;width:50%;height:15%"></div>
+</div>
+<div class="card sum" id="sum"></div>
+<div class="card"><h2>Confronto moduli: tocca per scegliere</h2><div id="cmp"></div></div>
+<div class="card"><h2>Disponibili: tocca per cambiare</h2><div class="ro" id="ro"></div>
+<p class="note">Verde: in campo. Barrato: indisponibile. I portieri restano in porta. Cerchio arancione: cambia ruolo o posto rispetto alla scelta precedente. Più verde il pallino, più adatto al ruolo.</p></div>
+</section>
+
+<section id="rosa"><div id="rlist"></div><button class="bt" id="addp" onclick="addP()">Aggiungi ragazzo</button>
+<p class="note">Voti da 1 a 10. Le modifiche si salvano da sole su questo dispositivo.</p></section>
+
+<section id="pesi"><p class="note" style="margin-top:0">Quanto conta ogni attributo in ogni ruolo. Non serve che la somma faccia 100: i pesi vengono comunque normalizzati.</p><div id="wlist"></div></section>
+
+<section id="dati">
+<div class="card"><h2>Salva e ripristina</h2>
+<textarea id="ta" placeholder="Qui compaiono i dati esportati. Incolla qui per importare."></textarea>
+<button class="bt" onclick="expo()">Esporta dati</button>
+<button class="bt g" onclick="copia()">Copia negli appunti</button>
+<button class="bt g" onclick="impo()">Importa dati incollati</button>
+<button class="bt d" onclick="reset()">Ripristina valori base</button>
+<p class="note" id="msg">Esporta ogni tanto una copia di sicurezza: se Safari cancella i dati del sito, la rosa va persa.</p></div>
+</section>
+
+<nav id="nav"><button class="on" data-t="campo">Campo</button><button data-t="rosa">Rosa</button><button data-t="pesi">Pesi</button><button data-t="dati">Dati</button></nav>
+
+<script>
+const KEY='fwd_formazioni_u14_v1';
+const A=['Velocità','Resistenza','Duelli / forza','Controllo palla','Passaggio','Dribbling 1vs1','Tiro','Lettura del gioco','Posizionamento','Mentalità','Parate','Uscite e presa','Gioco coi piedi'];
+const RN=['Portiere','Terzino','Difensore centrale','Mediano','Mezzala','Trequartista','Ala','Punta'];
+const R=['POR','TER','DIF','MED','MEZ','TRQ','ALA','PUN'];
+const BW=[[0,0,0,0,0,0,0,0,10,10,35,25,20],[20,20,10,5,10,10,0,5,15,5,0,0,0],[10,5,25,5,10,0,0,20,20,5,0,0,0],[5,20,15,10,15,0,0,20,10,5,0,0,0],[5,20,5,15,20,5,5,15,5,5,0,0,0],[5,5,0,20,20,15,10,20,0,5,0,0,0],[25,10,0,15,5,25,10,5,0,5,0,0,0],[15,5,15,10,0,10,25,10,5,5,0,0,0]];
+const Z=[0,0,0];
+const FULL={Boncristiano:'Riccardo Boncristiano',Caprio:'Leonardo Caprio','Della Corna':'Jacopo Della Corna',Gorgoglione:'Manuel Gorgoglione',Greco:'Francesco Greco',Guettar:'Amir Guettar',Ly:'Muhammad Ly',Marzaoui:'Saad Marzaoui',Molinaro:'Christian Molinaro',Mostafa:'Mazen Mostafa',Passoni:'Mattia Passoni',Perego:'Romeo Perego',Qarchaoui:'Fathaallah Qarchaoui',Resta:'Nicolas Resta',Sangalli:'Riccardo Sangalli',Tosoni:'Manuel Tosoni'};
+const BP=[
+['Boncristiano',0,0,[6,7,4,5,5,4,6,5,5,4,...Z]],['Caprio',1,0,[5,6,5,5,5,4,5,4,5,4,...Z]],
+['Della Corna',1,0,[6,8,6,7,8,7,7,8,7,8,...Z]],['Gorgoglione',1,0,[7,8,6,7,8,7,7,8,8,8,...Z]],
+['Greco',1,0,[5,6,5,5,5,5,5,5,6,6,...Z]],['Guettar',1,0,[5,6,4,4,5,5,4,4,6,6,...Z]],
+['Ly',1,0,[6,6,4,4,5,4,4,4,6,6,...Z]],['Marzaoui',0,0,[6,7,8,6,6,6,7,6,7,7,...Z]],
+['Molinaro',1,1,[6,7,8,7,7,6,7,7,8,8,8,8,6]],['Mostafa',1,0,[6,7,7,5,6,5,5,5,6,6,...Z]],
+['Passoni',1,1,[6,7,6,6,6,6,6,5,7,6,6,6,6]],['Perego',1,0,[8,8,7,8,8,7,8,8,8,8,...Z]],
+['Qarchaoui',1,0,[8,8,5,8,8,7,8,6,5,7,...Z]],['Resta',1,0,[7,7,8,7,7,7,7,6,6,8,...Z]],
+['Sangalli',1,0,[5,5,6,7,8,7,8,8,7,7,...Z]],['Tosoni',0,0,[8,8,7,7,7,7,6,7,8,7,...Z]]
+].map(([n,f,g,a],i)=>({id:i+1,n:FULL[n]||n,s:n,f,g:!!g,out:n=='Mostafa',a}));
+const F={
+'4-2-3-1':[[0],[1,2,2,1],[3,3],[6,5,6],[7]],
+'4-3-3':[[0],[1,2,2,1],[4,3,4],[6,7,6]],
+'4-4-2':[[0],[1,2,2,1],[6,4,3,6],[7,7]],
+'4-3-1-2':[[0],[1,2,2,1],[4,3,4],[5],[7,7]],
+'3-5-2':[[0],[2,2,2],[1,4,3,4,1],[7,7]],
+'3-4-3':[[0],[2,2,2],[1,4,4,1],[6,7,6]]};
+
+const clone=o=>JSON.parse(JSON.stringify(o));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fm=x=>x.toFixed(1).replace('.',',');
+const clamp=(v,a,b,d)=>{v=Math.round(+v);return isNaN(v)?d:Math.max(a,Math.min(b,v))};
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&Array.isArray(j.p)&&Array.isArray(j.w))return j}catch(e){}return{p:clone(BP),w:clone(BW)}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load(),cur='4-2-3-1',prev=null;
+const byId=id=>S.p.find(p=>p.id==id);
+
+const sc=(p,r)=>{const w=S.w[r],t=w.reduce((a,b)=>a+b,0);return t?p.a.reduce((s,x,i)=>s+x*w[i],0)/t:0};
+function hung(a){const n=a.length,m=a[0].length,I=1e9,u=Array(n+1).fill(0),v=Array(m+1).fill(0),p=Array(m+1).fill(0),w=Array(m+1).fill(0);
+for(let i=1;i<=n;i++){p[0]=i;let j0=0;const mv=Array(m+1).fill(I),us=Array(m+1).fill(false);
+do{us[j0]=true;const i0=p[j0];let d=I,j1=0;
+for(let j=1;j<=m;j++)if(!us[j]){const c=a[i0-1][j-1]-u[i0]-v[j];if(c<mv[j]){mv[j]=c;w[j]=j0}if(mv[j]<d){d=mv[j];j1=j}}
+for(let j=0;j<=m;j++)if(us[j]){u[p[j]]+=d;v[j]-=d}else mv[j]-=d;j0=j1}while(p[j0]!=0);
+do{const j1=w[j0];p[j0]=p[j1];j0=j1}while(j0)}
+const r=Array(n);for(let j=1;j<=m;j++)if(p[j])r[p[j]-1]=j-1;return r}
+function solve(f){
+const av=S.p.filter(p=>!p.out),sl=[];
+F[f].forEach((ln,li)=>ln.forEach((r,k)=>sl.push({r,li,k,n:ln.length})));
+if(av.length<sl.length)return null;
+const res=hung(sl.map(s=>av.map(p=>-sc(p,s.r)+(p.g&&s.r?1000:0))));
+const as=sl.map((s,j)=>({...s,p:av[res[j]]}));
+F[f].forEach((ln,li)=>[...new Set(ln)].forEach(r=>{const g=as.filter(a=>a.li==li&&a.r==r);
+if(g.length>1){const ps=g.map(a=>a.p).sort((x,y)=>x.f-y.f);g.forEach((a,q)=>a.p=ps[q])}}));
+as.forEach(a=>a.s=sc(a.p,a.r));
+return{as,t:as.reduce((s,a)=>s+a.s,0)}}
+
+/* ---- Campo ---- */
+const pitch=document.getElementById('pitch'),dots=new Map();
+const col=s=>`hsl(${Math.max(0,Math.min(1,(s-5)/3.3))*120} 70% 36%)`;
+function renderCampo(){
+const all=Object.keys(F).map(f=>[f,solve(f)]);
+document.getElementById('chips').innerHTML=Object.keys(F).map(f=>`<button class="chip${f==cur?' on':''}" onclick="pick('${f}')">${f}</button>`).join('');
+const sm=document.getElementById('sum'),S1=solve(cur);
+for(const[id,d]of dots)if(!byId(id)){d.remove();dots.delete(id)}
+S.p.forEach(p=>{if(!dots.has(p.id)){const d=document.createElement('div');d.className='p';d.style.cssText='left:50%;top:112%;opacity:0';d.innerHTML='<div class="c"></div><div class="n"></div>';pitch.appendChild(d);dots.set(p.id,d)}});
+if(!S1){sm.textContent='Servono almeno 11 ragazzi disponibili.';S.p.forEach(p=>dots.get(p.id).style.opacity=0);document.getElementById('cmp').innerHTML='';renderChips();return}
+const now={};let ch=0;
+S.p.forEach(p=>{const d=dots.get(p.id),a=S1.as.find(x=>x.p===p);
+if(a){now[p.id]=a.r;const L=F[cur].length;
+d.style.left=(a.k+1)/(a.n+1)*100+'%';d.style.top=90-a.li*(78/(L-1))+'%';d.style.opacity=1;
+d.firstChild.style.background=col(a.s);d.firstChild.textContent=fm(a.s);
+d.lastChild.innerHTML=esc(p.s||p.n)+' <i>'+R[a.r]+'</i>';
+d.classList.remove('chg');void d.offsetWidth;
+if(prev&&prev[p.id]!==a.r){d.classList.add('chg');ch++}}
+else{d.style.left='50%';d.style.top='112%';d.style.opacity=0;d.classList.remove('chg')}});
+const wk=S1.as.reduce((m,a)=>a.s<m.s?a:m);
+sm.innerHTML=`<b>${cur}</b>: totale <b>${fm(S1.t)}</b>, media <b>${fm(S1.t/11)}</b><br>Punto debole: <b>${esc(wk.p.n)}</b> (${R[wk.r]} ${fm(wk.s)})`+(prev?`<br>${ch} ${ch==1?'cambio':'cambi'} rispetto a prima.`:'');
+const ok=all.filter(a=>a[1]),ts=ok.map(a=>a[1].t),hi=Math.max(...ts),lo=Math.min(...ts);
+document.getElementById('cmp').innerHTML=ok.map(([f,s])=>`<div class="row${f==cur?' on':''}" onclick="pick('${f}')"><b>${f}</b><div class="bar"><span style="width:${40+60*(s.t-lo)/((hi-lo)||1)}%"></span></div><em>${fm(s.t)}${s.t==hi?' ★':' ('+fm(s.t-hi).replace('-','−')+')'}</em></div>`).join('');
+prev=now;renderChips(S1)}
+function renderChips(S1){const st=new Set(S1?S1.as.map(a=>a.p.id):[]);
+document.getElementById('ro').innerHTML=S.p.map(p=>`<button class="pl${p.out?' o':st.has(p.id)?' s':''}" onclick="togOut(${p.id})">${esc(p.n)}${p.g?' 🧤':''}</button>`).join('')}
+function pick(f){cur=f;renderCampo()}
+function togOut(id){const p=byId(id);p.out=!p.out;save();renderCampo()}
+
+/* ---- Rosa ---- */
+function pBody(p){const n=p.g?13:10;return`<div class="f2"><label class="nm">Nome<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></label>
+<label>Piede<select onchange="upd(${p.id},'f',+this.value)"><option value="0"${p.f==0?' selected':''}>Sinistro</option><option value="1"${p.f==1?' selected':''}>Destro</option></select></label></div>
+<label class="ck"><input type="checkbox"${p.g?' checked':''} onchange="upd(${p.id},'g',this.checked)"> Portiere (gioca solo in porta)</label>
+<div class="ag">${A.slice(0,n).map((a,i)=>`<label>${a}<input type="number" inputmode="numeric" min="1" max="10" value="${p.a[i]}" onchange="setA(${p.id},${i},this)"></label>`).join('')}</div>
+<button class="bt d rm" onclick="del(${p.id})">Elimina ragazzo</button>`}
+function pCard(p,open){return`<details class="card" id="d${p.id}"${open?' open':''}><summary><span id="nm${p.id}">${esc(p.n)}</span><span id="gl${p.id}">${p.g?'🧤':''}</span><span class="tg${p.out?' o':''}" onclick="event.preventDefault();tg(${p.id},this)">${p.out?'Indisponibile':'Disponibile'}</span></summary><div class="bd" id="bd${p.id}">${pBody(p)}</div></details>`}
+function renderRosa(openId){document.getElementById('rlist').innerHTML=S.p.map(p=>pCard(p,p.id==openId)).join('')}
+function upd(id,k,v){const p=byId(id);p[k]=v;save();
+if(k=='n')document.getElementById('nm'+id).textContent=v;
+if(k=='g'){document.getElementById('gl'+id).textContent=v?'🧤':'';document.getElementById('bd'+id).innerHTML=pBody(p)}}
+function setA(id,i,el){const v=clamp(el.value,1,10,5);byId(id).a[i]=v;el.value=v;save()}
+function tg(id,el){const p=byId(id);p.out=!p.out;el.className='tg'+(p.out?' o':'');el.textContent=p.out?'Indisponibile':'Disponibile';save()}
+function addP(){const id=Date.now();S.p.push({id,n:'Nuovo ragazzo',f:1,g:false,out:false,a:Array(13).fill(5)});save();renderRosa(id);
+document.getElementById('d'+id).scrollIntoView({block:'center'})}
+function del(id){const p=byId(id);if(!confirm('Eliminare '+p.n+'?'))return;S.p=S.p.filter(x=>x.id!=id);save();renderRosa()}
+
+/* ---- Pesi ---- */
+function renderPesi(){document.getElementById('wlist').innerHTML=RN.map((n,r)=>`<details class="card"><summary>${n}<span class="tg" id="wt${r}" style="margin-left:auto"></span></summary><div class="bd"><div class="ag">${A.map((a,i)=>`<label>${a}<input type="number" inputmode="numeric" min="0" max="100" value="${S.w[r][i]}" onchange="setW(${r},${i},this)"></label>`).join('')}</div></div></details>`).join('');
+RN.forEach((_,r)=>wTot(r))}
+function wTot(r){const t=S.w[r].reduce((a,b)=>a+b,0),e=document.getElementById('wt'+r);e.textContent='totale '+t;e.className='tg'+(t==100?'':' o')}
+function setW(r,i,el){const v=clamp(el.value,0,100,0);S.w[r][i]=v;el.value=v;wTot(r);save()}
+
+/* ---- Dati ---- */
+const msg=t=>document.getElementById('msg').textContent=t;
+function expo(){const t=document.getElementById('ta');t.value=JSON.stringify(S);t.select();msg('Dati esportati nel riquadro.')}
+function copia(){expo();const t=document.getElementById('ta').value;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>msg('Copiato negli appunti.')).catch(()=>msg('Copia non riuscita: tieni premuto sul testo e scegli Copia.'))}
+function impo(){try{const j=JSON.parse(document.getElementById('ta').value);
+if(!Array.isArray(j.p)||!Array.isArray(j.w)||j.w.length!=8)throw 0;S=j;save();prev=null;renderRosa();renderPesi();msg('Dati importati.')}catch(e){msg('Dati non validi: incolla un’esportazione di questa app.')}}
+function reset(){if(!confirm('Ripristinare rosa, voti e pesi base? Le modifiche andranno perse.'))return;S={p:clone(BP),w:clone(BW)};save();prev=null;renderRosa();renderPesi();msg('Valori base ripristinati.')}
+
+/* ---- Navigazione ---- */
+document.getElementById('nav').onclick=e=>{const t=e.target.dataset.t;if(!t)return;
+document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===e.target));
+document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id==t));
+if(t=='campo')renderCampo();window.scrollTo(0,0)};
+
+/* ---- PWA: icona e manifest ---- */
+(()=>{try{const c=document.createElement('canvas');c.width=c.height=180;const x=c.getContext('2d');
+x.fillStyle='#2a7334';x.fillRect(0,0,180,180);x.strokeStyle='#fff';x.lineWidth=6;x.strokeRect(16,16,148,148);
+x.beginPath();x.moveTo(16,90);x.lineTo(164,90);x.stroke();x.beginPath();x.arc(90,90,28,0,7);x.stroke();
+const u=c.toDataURL('image/png'),l=document.createElement('link');l.rel='apple-touch-icon';l.href=u;document.head.appendChild(l);
+const m={name:'Formazioni',short_name:'Formazioni',display:'standalone',start_url:location.href,background_color:'#2a7334',theme_color:'#2a7334',icons:[{src:u,sizes:'180x180',type:'image/png'}]};
+const k=document.createElement('link');k.rel='manifest';k.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(k)}catch(e){}})();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+if(window.top!==window)document.body.classList.add('emb');
+save();renderRosa();renderPesi();renderCampo();
+</script></body></html>
