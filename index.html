@@ -15,6 +15,9 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
 #top{position:fixed;top:0;left:0;right:0;z-index:5;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 10px;background:linear-gradient(135deg,#0b8f45,#14b8a6)}
+.hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#fff;padding:0 4px 6px}
+.hd b{font-size:20px;font-family:"Avenir Next Condensed","Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.2px}
+.hd span{font-size:14px;font-weight:600}
 .tabs{display:flex;gap:4px;background:rgba(255,255,255,.2);border-radius:12px;padding:4px}
 .tabs button{flex:1;border:0;background:none;color:#fff;font:inherit;font-weight:700;font-size:15px;padding:9px 4px;border-radius:9px}
 .tabs button.on{background:#fff;color:#0b6e36}
@@ -38,7 +41,7 @@ button.d{border-color:var(--bad);color:var(--bad)}
 </style>
 </head>
 <body>
-<div id="top"><div class="tabs">
+<div id="top"><div class="hd"><b>Fwd Coach</b><span id="cat"></span></div><div class="tabs">
 <button id="b-carico" class="on" onclick="show('carico')">Carico</button>
 <button id="b-formazioni" onclick="show('formazioni')">Formazioni</button>
 <button id="b-rosa" onclick="show('rosa')">Rosa</button>
@@ -88,11 +91,13 @@ function fresh(t){if(!stale[t])return;stale[t]=false;try{fr[t].contentWindow.loc
 function markBoth(){stale.carico=stale.formazioni=true}
 function inject(f){try{const d=f.contentDocument;if(!d||d.getElementById('shx'))return;const s=d.createElement('style');s.id='shx';
  s.textContent='h1{display:none!important}.card:has(#rosa){display:none!important}';d.head.appendChild(s)}catch(e){}}
-function onLoad(n){inject(fr[n]);const o=syncAll();if(o.carico)stale.carico=true;if(o.formazioni)stale.formazioni=true;
+function onLoad(n){inject(fr[n]);updCat();const o=syncAll();if(o.carico)stale.carico=true;if(o.formazioni)stale.formazioni=true;
  if(tab!='rosa'&&stale[tab]&&rl[tab]++<3)fresh(tab)}
 fr.carico.onload=()=>onLoad('carico');fr.formazioni.onload=()=>onLoad('formazioni');
 
-function show(t){tab=t;
+function updCat(){const C=rd(KC);$('cat').textContent=C&&C.cat?C.cat:''}
+addEventListener('storage',updCat);
+function show(t){tab=t;updCat();
  ['carico','formazioni','rosa'].forEach(k=>{$('v-'+k).classList.toggle('on',k==t);$('b-'+k).classList.toggle('on',k==t)});
  if(t=='rosa')renderRosa();else fresh(t)}
 
@@ -129,7 +134,7 @@ function impAll(){
 /* ---- avvio ---- */
 function setTH(){document.documentElement.style.setProperty('--th',$('top').offsetHeight+'px')}
 addEventListener('resize',setTH);setTH();
-syncAll();
+syncAll();updCat();
 fr.carico.src='carico.html';fr.formazioni.src='formazioni.html';
 
 /* ---- PWA: icona e manifest ---- */
