@@ -10,21 +10,23 @@
 <meta name="theme-color" content="#0b8f45">
 <title>Fwd Coach</title>
 <style>
-:root{--bg:#e6f6ec;--card:#fff;--tx:#10231a;--mut:#4f6a5a;--ac:#0b8f45;--line:#bfe3cb;--bad:#e5383b;--th:96px;box-sizing:border-box}
+:root{--bg:#e6f6ec;--card:#fff;--tx:#10231a;--mut:#4f6a5a;--ac:#0b8f45;--line:#bfe3cb;--bad:#e5383b;box-sizing:border-box}
 @media(prefers-color-scheme:dark){:root{--bg:#0a1510;--card:#14231b;--tx:#eaf7ef;--mut:#9fc2ad;--ac:#34d399;--line:#26452f}}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
-#top{position:fixed;top:0;left:0;right:0;z-index:5;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 10px;background:linear-gradient(135deg,#0b8f45,#14b8a6)}
+body{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+html,body{margin:0;overflow:hidden;background:var(--card);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
+#top{flex:none;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 10px;background:linear-gradient(135deg,#0b8f45,#14b8a6)}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#fff;padding:0 4px 6px}
 .hd b{font-size:20px;font-family:"Avenir Next Condensed","Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.2px}
 .hd span{font-size:14px;font-weight:600}
 .tabs{display:flex;gap:4px;background:rgba(255,255,255,.2);border-radius:12px;padding:4px}
 .tabs button{flex:1;border:0;background:none;color:#fff;font:inherit;font-weight:700;font-size:15px;padding:9px 4px;border-radius:9px}
 .tabs button.on{background:#fff;color:#0b6e36}
-.view{position:fixed;left:0;right:0;top:var(--th);bottom:env(safe-area-inset-bottom,0px);display:none}
+#stage{flex:1;min-height:0;position:relative;margin-bottom:env(safe-area-inset-bottom,0px);background:var(--bg)}
+.view{position:absolute;top:0;left:0;right:0;bottom:0;display:none}
 .view.on{display:block}
-iframe{width:100%;height:100%;border:0;background:var(--bg)}
-#v-rosa{overflow:auto;padding:12px;-webkit-overflow-scrolling:touch}
+iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
+#v-rosa{overflow:auto;padding:12px 12px 24px;-webkit-overflow-scrolling:touch}
 .card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--ac);border-radius:12px;padding:12px;margin:0 auto 12px;max-width:640px}
 h2{font-size:21px;margin:0 0 6px;font-family:"Avenir Next Condensed","Barlow Condensed","Arial Narrow",sans-serif}
 .mut{color:var(--mut);font-size:13px}
@@ -46,9 +48,11 @@ button.d{border-color:var(--bad);color:var(--bad)}
 <button id="b-formazioni" onclick="show('formazioni')">Formazioni</button>
 <button id="b-rosa" onclick="show('rosa')">Rosa</button>
 </div></div>
+<div id="stage">
 <div class="view on" id="v-carico"><iframe id="fc" title="Carico squadra"></iframe></div>
 <div class="view" id="v-formazioni"><iframe id="ff" title="Formazioni"></iframe></div>
 <div class="view" id="v-rosa"></div>
+</div>
 <script>
 const KM='fwd_rosa_v1',KC='carico_squadra_v1',KF='fwd_formazioni_u14_v1';
 const $=id=>document.getElementById(id);
@@ -89,9 +93,9 @@ function syncAll(){
 
 function fresh(t){if(!stale[t])return;stale[t]=false;try{fr[t].contentWindow.location.reload()}catch(e){fr[t].src=fr[t].src}}
 function markBoth(){stale.carico=stale.formazioni=true}
-function inject(f){try{const d=f.contentDocument;if(!d||d.getElementById('shx'))return;const s=d.createElement('style');s.id='shx';
- s.textContent='h1{display:none!important}.card:has(#rosa){display:none!important}';d.head.appendChild(s)}catch(e){}}
-function onLoad(n){inject(fr[n]);updCat();const o=syncAll();if(o.carico)stale.carico=true;if(o.formazioni)stale.formazioni=true;
+function inject(f,n){try{const d=f.contentDocument;if(!d||d.getElementById('shx'))return;const s=d.createElement('style');s.id='shx';
+ s.textContent='h1{display:none!important}.card:has(#rosa){display:none!important}nav{padding-bottom:0!important}'+(n=='carico'?'body{padding-bottom:72px!important}':'');d.head.appendChild(s)}catch(e){}}
+function onLoad(n){inject(fr[n],n);updCat();const o=syncAll();if(o.carico)stale.carico=true;if(o.formazioni)stale.formazioni=true;
  if(tab!='rosa'&&stale[tab]&&rl[tab]++<3)fresh(tab)}
 fr.carico.onload=()=>onLoad('carico');fr.formazioni.onload=()=>onLoad('formazioni');
 
@@ -132,8 +136,6 @@ function impAll(){
  catch(e){bm('Testo non valido: incolla un’esportazione di questa app.')}}
 
 /* ---- avvio ---- */
-function setTH(){document.documentElement.style.setProperty('--th',$('top').offsetHeight+'px')}
-addEventListener('resize',setTH);setTH();
 syncAll();updCat();
 fr.carico.src='carico.html';fr.formazioni.src='formazioni.html';
 
