@@ -79,7 +79,7 @@ body.emb nav{padding-bottom:6px}
 </section>
 
 <section id="rosa"><div id="rlist"></div><button class="bt" id="addp" onclick="addP()">Aggiungi ragazzo</button>
-<p class="note">Voti da 1 a 10. Le modifiche si salvano da sole su questo dispositivo.</p></section>
+<p class="note">Voti da 1 a 10. Visione di gioco e Gioco aereo sono facoltativi: se li lasci vuoti non contano e il punteggio si calcola sugli altri voti. Le modifiche si salvano da sole su questo dispositivo.</p></section>
 
 <section id="pesi"><p class="note" style="margin-top:0">Quanto conta ogni attributo in ogni ruolo. Non serve che la somma faccia 100: i pesi vengono comunque normalizzati.</p><div id="wlist"></div></section>
 
@@ -97,10 +97,11 @@ body.emb nav{padding-bottom:6px}
 
 <script>
 const KEY='fwd_formazioni_u14_v1';
-const A=['Velocità','Resistenza','Duelli / forza','Controllo palla','Passaggio','Dribbling 1vs1','Tiro','Lettura del gioco','Posizionamento','Mentalità','Parate','Uscite e presa','Gioco coi piedi'];
+const A=['Velocità','Resistenza','Duelli / forza','Controllo palla','Passaggio','Dribbling 1vs1','Tiro','Lettura del gioco','Posizionamento','Mentalità','Parate','Uscite e presa','Gioco coi piedi','Visione di gioco','Gioco aereo'];
 const RN=['Portiere','Terzino','Difensore centrale','Mediano','Mezzala','Trequartista','Ala','Punta'];
 const R=['POR','TER','DIF','MED','MEZ','TRQ','ALA','PUN'];
-const BW=[[0,0,0,0,0,0,0,0,10,10,35,25,20],[20,20,10,5,10,10,0,5,15,5,0,0,0],[10,5,25,5,10,0,0,20,20,5,0,0,0],[5,20,15,10,15,0,0,20,10,5,0,0,0],[5,20,5,15,20,5,5,15,5,5,0,0,0],[5,5,0,20,20,15,10,20,0,5,0,0,0],[25,10,0,15,5,25,10,5,0,5,0,0,0],[15,5,15,10,0,10,25,10,5,5,0,0,0]];
+const OLDW=[[0,0,0,0,0,0,0,0,10,10,35,25,20],[20,20,10,5,10,10,0,5,15,5,0,0,0],[10,5,25,5,10,0,0,20,20,5,0,0,0],[5,20,15,10,15,0,0,20,10,5,0,0,0],[5,20,5,15,20,5,5,15,5,5,0,0,0],[5,5,0,20,20,15,10,20,0,5,0,0,0],[25,10,0,15,5,25,10,5,0,5,0,0,0],[15,5,15,10,0,10,25,10,5,5,0,0,0]];
+const BW=[[0,0,0,0,0,0,0,0,10,10,35,25,20,0,0],[20,20,10,5,10,10,0,5,15,5,0,0,0,0,0],[5,5,20,5,10,0,0,20,20,5,0,0,0,0,10],[5,20,15,10,15,0,0,15,10,5,0,0,0,5,0],[5,15,5,15,20,5,5,10,5,5,0,0,0,10,0],[5,5,0,20,15,15,10,10,0,5,0,0,0,15,0],[25,10,0,15,5,25,10,5,0,5,0,0,0,0,0],[10,5,10,10,0,10,25,10,5,5,0,0,0,0,10]];
 const Z=[0,0,0];
 const FULL={Boncristiano:'Riccardo Boncristiano',Caprio:'Leonardo Caprio','Della Corna':'Jacopo Della Corna',Gorgoglione:'Manuel Gorgoglione',Greco:'Francesco Greco',Guettar:'Amir Guettar',Ly:'Muhammad Ly',Marzaoui:'Saad Marzaoui',Molinaro:'Christian Molinaro',Mostafa:'Mazen Mostafa',Passoni:'Mattia Passoni',Perego:'Romeo Perego',Qarchaoui:'Fathaallah Qarchaoui',Resta:'Nicolas Resta',Sangalli:'Riccardo Sangalli',Tosoni:'Manuel Tosoni'};
 const BP=[
@@ -112,7 +113,7 @@ const BP=[
 ['Passoni',1,1,[6,7,6,6,6,6,6,5,7,6,6,6,6]],['Perego',1,0,[8,8,7,8,8,7,8,8,8,8,...Z]],
 ['Qarchaoui',1,0,[8,8,5,8,8,7,8,6,5,7,...Z]],['Resta',1,0,[7,7,8,7,7,7,7,6,6,8,...Z]],
 ['Sangalli',1,0,[5,5,6,7,8,7,8,8,7,7,...Z]],['Tosoni',0,0,[8,8,7,7,7,7,6,7,8,7,...Z]]
-].map(([n,f,g,a],i)=>({id:i+1,n:FULL[n]||n,s:n,f,g:!!g,out:n=='Mostafa',a}));
+].map(([n,f,g,a],i)=>({id:i+1,n:FULL[n]||n,s:n,f,g:!!g,out:n=='Mostafa',a:[...a,null,null]}));
 const F={
 '4-2-3-1':[[0],[1,2,2,1],[3,3],[6,5,6],[7]],
 '4-3-3':[[0],[1,2,2,1],[4,3,4],[6,7,6]],
@@ -125,12 +126,15 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fm=x=>x.toFixed(1).replace('.',',');
 const clamp=(v,a,b,d)=>{v=Math.round(+v);return isNaN(v)?d:Math.max(a,Math.min(b,v))};
-function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&Array.isArray(j.p)&&Array.isArray(j.w))return j}catch(e){}return{p:clone(BP),w:clone(BW)}}
+function mig(j){
+if(j.v!==2){j.w=JSON.stringify(j.w)==JSON.stringify(OLDW)?clone(BW):j.w.map(r=>{r=r.slice();while(r.length<15)r.push(0);return r});j.v=2}
+j.p.forEach(p=>{while(p.a.length<15)p.a.push(null)});return j}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&Array.isArray(j.p)&&Array.isArray(j.w))return mig(j)}catch(e){}return mig({p:clone(BP),w:clone(BW)})}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load(),cur='4-2-3-1',prev=null;
 const byId=id=>S.p.find(p=>p.id==id);
 
-const sc=(p,r)=>{const w=S.w[r],t=w.reduce((a,b)=>a+b,0);return t?p.a.reduce((s,x,i)=>s+x*w[i],0)/t:0};
+const sc=(p,r)=>{const w=S.w[r];let n=0,t=0;for(let i=0;i<w.length;i++){const x=p.a[i];if(x==null||x===''||isNaN(x))continue;n+=x*w[i];t+=w[i]}return t?n/t:0};
 function hung(a){const n=a.length,m=a[0].length,I=1e9,u=Array(n+1).fill(0),v=Array(m+1).fill(0),p=Array(m+1).fill(0),w=Array(m+1).fill(0);
 for(let i=1;i<=n;i++){p[0]=i;let j0=0;const mv=Array(m+1).fill(I),us=Array(m+1).fill(false);
 do{us[j0]=true;const i0=p[j0];let d=I,j1=0;
@@ -179,19 +183,19 @@ function pick(f){cur=f;renderCampo()}
 function togOut(id){const p=byId(id);p.out=!p.out;save();renderCampo()}
 
 /* ---- Rosa ---- */
-function pBody(p){const n=p.g?13:10;return`<div class="f2"><label class="nm">Nome<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></label>
+function pBody(p){const ix=p.g?[0,1,2,3,4,5,6,7,8,9,10,11,12]:[0,1,2,3,4,5,6,7,8,9,13,14];return`<div class="f2"><label class="nm">Nome<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></label>
 <label>Piede<select onchange="upd(${p.id},'f',+this.value)"><option value="0"${p.f==0?' selected':''}>Sinistro</option><option value="1"${p.f==1?' selected':''}>Destro</option></select></label></div>
 <label class="ck"><input type="checkbox"${p.g?' checked':''} onchange="upd(${p.id},'g',this.checked)"> Portiere (gioca solo in porta)</label>
-<div class="ag">${A.slice(0,n).map((a,i)=>`<label>${a}<input type="number" inputmode="numeric" min="1" max="10" value="${p.a[i]}" onchange="setA(${p.id},${i},this)"></label>`).join('')}</div>
+<div class="ag">${ix.map(i=>`<label>${A[i]}${i>12?' (facoltativo)':''}<input type="number" inputmode="numeric" min="1" max="10" placeholder="${i>12?'—':''}" value="${p.a[i]==null?'':p.a[i]}" onchange="setA(${p.id},${i},this)"></label>`).join('')}</div>
 <button class="bt d rm" onclick="del(${p.id})">Elimina ragazzo</button>`}
 function pCard(p,open){return`<details class="card" id="d${p.id}"${open?' open':''}><summary><span id="nm${p.id}">${esc(p.n)}</span><span id="gl${p.id}">${p.g?'🧤':''}</span><span class="tg${p.out?' o':''}" onclick="event.preventDefault();tg(${p.id},this)">${p.out?'Indisponibile':'Disponibile'}</span></summary><div class="bd" id="bd${p.id}">${pBody(p)}</div></details>`}
 function renderRosa(openId){document.getElementById('rlist').innerHTML=S.p.map(p=>pCard(p,p.id==openId)).join('')}
 function upd(id,k,v){const p=byId(id);p[k]=v;save();
 if(k=='n')document.getElementById('nm'+id).textContent=v;
 if(k=='g'){document.getElementById('gl'+id).textContent=v?'🧤':'';document.getElementById('bd'+id).innerHTML=pBody(p)}}
-function setA(id,i,el){const v=clamp(el.value,1,10,5);byId(id).a[i]=v;el.value=v;save()}
+function setA(id,i,el){const e=String(el.value).trim()==='';const v=e&&i>12?null:clamp(el.value,1,10,5);byId(id).a[i]=v;el.value=v==null?'':v;save()}
 function tg(id,el){const p=byId(id);p.out=!p.out;el.className='tg'+(p.out?' o':'');el.textContent=p.out?'Indisponibile':'Disponibile';save()}
-function addP(){const id=Date.now();S.p.push({id,n:'Nuovo ragazzo',f:1,g:false,out:false,a:Array(13).fill(5)});save();renderRosa(id);
+function addP(){const id=Date.now();S.p.push({id,n:'Nuovo ragazzo',f:1,g:false,out:false,a:Array.from({length:15},(_,i)=>i<13?5:null)});save();renderRosa(id);
 document.getElementById('d'+id).scrollIntoView({block:'center'})}
 function del(id){const p=byId(id);if(!confirm('Eliminare '+p.n+'?'))return;S.p=S.p.filter(x=>x.id!=id);save();renderRosa()}
 
@@ -206,8 +210,8 @@ const msg=t=>document.getElementById('msg').textContent=t;
 function expo(){const t=document.getElementById('ta');t.value=JSON.stringify(S);t.select();msg('Dati esportati nel riquadro.')}
 function copia(){expo();const t=document.getElementById('ta').value;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>msg('Copiato negli appunti.')).catch(()=>msg('Copia non riuscita: tieni premuto sul testo e scegli Copia.'))}
 function impo(){try{const j=JSON.parse(document.getElementById('ta').value);
-if(!Array.isArray(j.p)||!Array.isArray(j.w)||j.w.length!=8)throw 0;S=j;save();prev=null;renderRosa();renderPesi();msg('Dati importati.')}catch(e){msg('Dati non validi: incolla un’esportazione di questa app.')}}
-function reset(){if(!confirm('Ripristinare rosa, voti e pesi base? Le modifiche andranno perse.'))return;S={p:clone(BP),w:clone(BW)};save();prev=null;renderRosa();renderPesi();msg('Valori base ripristinati.')}
+if(!Array.isArray(j.p)||!Array.isArray(j.w)||j.w.length!=8)throw 0;S=mig(j);save();prev=null;renderRosa();renderPesi();msg('Dati importati.')}catch(e){msg('Dati non validi: incolla un’esportazione di questa app.')}}
+function reset(){if(!confirm('Ripristinare rosa, voti e pesi base? Le modifiche andranno perse.'))return;S=mig({p:clone(BP),w:clone(BW)});save();prev=null;renderRosa();renderPesi();msg('Valori base ripristinati.')}
 
 /* ---- Navigazione ---- */
 document.getElementById('nav').onclick=e=>{const t=e.target.dataset.t;if(!t)return;
