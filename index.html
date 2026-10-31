@@ -84,7 +84,7 @@ function syncAll(){
  if(Fm&&Array.isArray(Fm.p)){
   const o=JSON.stringify(Fm.p),by=new Map(Fm.p.map(p=>[p.id,p]));let k=0;
   const np=M.list.map(e=>{let p=e.f!=null?by.get(e.f):null;
-   if(!p){const id=Date.now()+(k++);e.f=id;p={id,n:e.name,f:1,g:false,out:false,a:Array(13).fill(5)}}
+   if(!p){const id=Date.now()+(k++);e.f=id;p={id,n:e.name,f:1,g:false,out:false,a:Array.from({length:15},(_,i)=>i<13?5:null)}}
    if(p.s&&!same(p.s,e.name))delete p.s;
    p.n=e.name;return p});
   if(o!=JSON.stringify(np)){Fm.p=np;wr(KF,Fm);out.formazioni=true}}
